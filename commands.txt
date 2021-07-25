@@ -1,0 +1,6 @@
+-- Run server:
+python ./music_controller/manage.py runserver
+
+-- Run frontend:
+cd ./music_controller/frontend
+npm run dev
