@@ -1,6 +1,5 @@
 node_modules
 *.sqlite3
 .venv
-.vscode
 .env
 __pycache__
