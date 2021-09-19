@@ -1,16 +1,17 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
 import Button from "@material-ui/core/Button";
-import Grid from "@material-ui/core/Grid";
-import Typography from "@material-ui/core/Typography";
-import TextField from "@material-ui/core/TextField";
-import FormHelperText from "@material-ui/core/FormHelperText";
 import FormControl from "@material-ui/core/FormControl";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import FormHelperText from "@material-ui/core/FormHelperText";
+import Grid from "@material-ui/core/Grid";
 import Radio from "@material-ui/core/Radio";
 import RadioGroup from "@material-ui/core/RadioGroup";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
+import TextField from "@material-ui/core/TextField";
+import Typography from "@material-ui/core/Typography";
+import React, { useState } from "react";
+import { Link, useHistory } from "react-router-dom";
 
 export default function CreateRoomPage() {
+    const history = useHistory();
     const defaultVotes = 2;
     const [guestCanPause, setGuestCanPause] = useState(true);
     const [votesToSkip, setVotesToSkip] = useState(defaultVotes);
@@ -35,7 +36,7 @@ export default function CreateRoomPage() {
 
         fetch('/api/create-room', requestOptions)
             .then(response => response.json())
-            .then(data => console.log(data))
+            .then(data => history.push('/room/' + data.code))
     }
 
     return (
