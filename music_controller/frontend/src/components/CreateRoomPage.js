@@ -1,12 +1,14 @@
-import Button from "@material-ui/core/Button";
-import FormControl from "@material-ui/core/FormControl";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import FormHelperText from "@material-ui/core/FormHelperText";
-import Grid from "@material-ui/core/Grid";
-import Radio from "@material-ui/core/Radio";
-import RadioGroup from "@material-ui/core/RadioGroup";
-import TextField from "@material-ui/core/TextField";
-import Typography from "@material-ui/core/Typography";
+import {
+    Button,
+    FormControl,
+    FormControlLabel,
+    FormHelperText,
+    Grid,
+    Radio,
+    RadioGroup,
+    TextField,
+    Typography
+} from "@material-ui/core";
 import React, { useState } from "react";
 import { Link, useHistory } from "react-router-dom";
 
@@ -21,22 +23,22 @@ export default function CreateRoomPage() {
     }
 
     function handleGuestCanPauseChange(e) {
-        setGuestCanPause(e.target.value === 'true' ? true : false);
+        setGuestCanPause(e.target.value === "true" ? true : false);
     }
 
     function handleRoomButtonPressed() {
         const requestOptions = {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 votes_to_skip: votesToSkip,
-                guest_can_pause: guestCanPause
-            })
-        }
+                guest_can_pause: guestCanPause,
+            }),
+        };
 
-        fetch('/api/create-room', requestOptions)
-            .then(response => response.json())
-            .then(data => history.push('/room/' + data.code))
+        fetch("/api/create-room", requestOptions)
+            .then((response) => response.json())
+            .then((data) => history.push("/room/" + data.code));
     }
 
     return (
@@ -51,19 +53,23 @@ export default function CreateRoomPage() {
                 <Grid item xs={12} align="center">
                     <FormControl component="fieldset">
                         <FormHelperText>
-                            <div align="center">
+                            <span align="center">
                                 Guest Control of Playback State
-                            </div>
+                            </span>
                         </FormHelperText>
-                        <RadioGroup row defaultValue="true" onChange={handleGuestCanPauseChange}>
-                            <FormControlLabel 
-                                value="true" 
+                        <RadioGroup
+                            row
+                            defaultValue="true"
+                            onChange={handleGuestCanPauseChange}
+                        >
+                            <FormControlLabel
+                                value="true"
                                 control={<Radio color="primary" />}
                                 label="Play/Pause"
                                 labelPlacement="bottom"
                             />
-                            <FormControlLabel 
-                                value="false" 
+                            <FormControlLabel
+                                value="false"
                                 control={<Radio color="secondary" />}
                                 label="No control"
                                 labelPlacement="bottom"
@@ -74,32 +80,41 @@ export default function CreateRoomPage() {
 
                 <Grid item xs={12} align="center">
                     <FormControl>
-                        <TextField 
-                            required={true} 
-                            type="number" 
-                            defaultValue={defaultVotes} 
+                        <TextField
+                            required={true}
+                            type="number"
+                            defaultValue={defaultVotes}
                             inputProps={{
                                 min: 1,
-                                style: {textAlign: "center"}
+                                style: { textAlign: "center" },
                             }}
                             onChange={handleVotesChange}
                         />
                         <FormHelperText>
-                            <div align="center">
+                            <span align="center">
                                 Votes Required To Skip Song
-                            </div>
+                            </span>
                         </FormHelperText>
                     </FormControl>
                 </Grid>
 
                 <Grid item xs={12} align="center">
-                    <Button color="primary" variant="contained" onClick={handleRoomButtonPressed}>
+                    <Button
+                        color="primary"
+                        variant="contained"
+                        onClick={handleRoomButtonPressed}
+                    >
                         Create A Room
                     </Button>
                 </Grid>
 
                 <Grid item xs={12} align="center">
-                    <Button color="secondary" variant="contained" to="/" component={Link}>
+                    <Button
+                        color="secondary"
+                        variant="contained"
+                        to="/"
+                        component={Link}
+                    >
                         Back
                     </Button>
                 </Grid>

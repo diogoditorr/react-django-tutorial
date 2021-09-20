@@ -1,11 +1,12 @@
 from django.http.request import HttpRequest
-from django.http.response import HttpResponse
+from django.http.response import HttpResponse, JsonResponse
 from django.shortcuts import render
 from rest_framework import generics, serializers, status
-from .serializers import RoomSerializer, CreateRoomSerializer
-from .models import Room
-from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .models import Room
+from .serializers import CreateRoomSerializer, RoomSerializer
 
 
 # Create your views here.
@@ -26,7 +27,7 @@ class GetRoom(APIView):
             if len(room) > 0:
                 data = RoomSerializer(room[0]).data
                 data['is_host'] = self.request.session.session_key == room[0].host
-                
+
                 return Response(
                     data,
                     status=status.HTTP_200_OK
@@ -41,6 +42,7 @@ class GetRoom(APIView):
             {'Bad Request': 'Code parameter not found in request'},
             status=status.HTTP_400_BAD_REQUEST
         )
+
 
 class JoinRoom(APIView):
     lookup_url_kwarg = 'code'
@@ -60,18 +62,16 @@ class JoinRoom(APIView):
                     {'message': 'Room Joined!'},
                     status=status.HTTP_200_OK
                 )
-            
+
             return Response(
-                    {'Error': 'Invalid Room Code'},
-                    status=status.HTTP_404_NOT_FOUND
-                )
+                {'Error': 'Invalid Room Code'},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
         return Response(
             {'Bad Request': 'Invalid post data, did not find a code key'},
             status=status.HTTP_400_BAD_REQUEST
         )
-
-
 
 
 class CreateRoomView(APIView):
@@ -117,3 +117,15 @@ class CreateRoomView(APIView):
             {'Bad Request': 'Invalid data...'},
             status=status.HTTP_400_BAD_REQUEST
         )
+
+
+class UserInRoom(APIView):
+    def get(self, request: HttpRequest, format=None):
+        if not self.request.session.exists(self.request.session.session_key):
+            self.request.session.create()
+
+        data = {
+            'code': self.request.session.get('room_code')
+        }
+
+        return JsonResponse(data, status=status.HTTP_200_OK)
