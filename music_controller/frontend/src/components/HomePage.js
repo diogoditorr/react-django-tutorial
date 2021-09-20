@@ -49,6 +49,10 @@ export default function HomePage() {
         );
     }
 
+    function clearRoomCode() {
+        setRoomCode(null);
+    }
+
     return (
         <Router>
             <Switch>
@@ -65,7 +69,12 @@ export default function HomePage() {
                 />
                 <Route path="/join" component={RoomJoinPage} />
                 <Route path="/create" component={CreateRoomPage} />
-                <Route path="/room/:roomCode" component={Room} />
+                <Route 
+                    path="/room/:roomCode" 
+                    render={(props) => {
+                        return <Room {...props} leaveRoomCallback={clearRoomCode} />
+                    }}
+                />
             </Switch>
         </Router>
     );
