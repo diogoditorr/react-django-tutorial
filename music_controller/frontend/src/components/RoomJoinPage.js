@@ -1,9 +1,12 @@
 import React, { useState } from "react";
 import { TextField, Button, Grid, Typography } from "@material-ui/core";
 import { Link, useHistory } from "react-router-dom";
+import { useCookies } from "react-cookie";
 
 export default function RoomJoinPage() {
+    const [cookies, setCookie, removeCookie] = useCookies(['csrftoken']);
     const history = useHistory();
+
     const [roomCode, setRoomCode] = useState("");
     const [error, setError] = useState("");
 
@@ -14,7 +17,10 @@ export default function RoomJoinPage() {
     function roomButtonPressed() {
         fetch("/api/join-room", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+                "Content-Type": "application/json",
+                "X-CSRFToken": cookies.csrftoken
+            },
             body: JSON.stringify({
                 code: roomCode,
             }),

@@ -11,9 +11,12 @@ import {
 } from "@material-ui/core";
 import React, { useState } from "react";
 import { Link, useHistory } from "react-router-dom";
+import { useCookies } from 'react-cookie';
 
 export default function CreateRoomPage() {
     const history = useHistory();
+    const [cookies, setCookie, removeCookie] = useCookies(['csrftoken']);
+    
     const defaultVotes = 2;
     const [guestCanPause, setGuestCanPause] = useState(true);
     const [votesToSkip, setVotesToSkip] = useState(defaultVotes);
@@ -29,7 +32,10 @@ export default function CreateRoomPage() {
     function handleRoomButtonPressed() {
         const requestOptions = {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+                "Content-Type": "application/json", 
+                "X-CSRFToken": cookies.csrftoken
+            },
             body: JSON.stringify({
                 votes_to_skip: votesToSkip,
                 guest_can_pause: guestCanPause,

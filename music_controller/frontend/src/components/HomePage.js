@@ -69,10 +69,15 @@ export default function HomePage() {
                 />
                 <Route path="/join" component={RoomJoinPage} />
                 <Route path="/create" component={CreateRoomPage} />
-                <Route 
-                    path="/room/:roomCode" 
+                <Route
+                    path="/room/:roomCode"
                     render={(props) => {
-                        return <Room {...props} leaveRoomCallback={clearRoomCode} />
+                        return (
+                            <Room
+                                {...props}
+                                leaveRoomCallback={clearRoomCode}
+                            />
+                        );
                     }}
                 />
             </Switch>
