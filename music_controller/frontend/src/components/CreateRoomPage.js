@@ -1,49 +1,26 @@
 import {
-    Button,
-    Collapse,
-    FormControl,
+    Button, FormControl,
     FormControlLabel,
     FormHelperText,
     Grid,
     Radio,
     RadioGroup,
     TextField,
-    Typography,
+    Typography
 } from "@material-ui/core";
-import { Alert } from "@material-ui/lab";
 import PropTypes from "prop-types";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { useCookies } from "react-cookie";
 import { Link, useHistory } from "react-router-dom";
-
-CreateRoomPage.propTypes = {
-    votesToSkip: PropTypes.number.isRequired,
-    guestCanPause: PropTypes.bool.isRequired,
-    update: PropTypes.bool.isRequired,
-    roomCode: PropTypes.string.isRequired,
-    updateCallback: PropTypes.func.isRequired,
-};
-
-CreateRoomPage.defaultProps = {
-    votesToSkip: 2,
-    guestCanPause: true,
-    update: false,
-    roomCode: "",
-    updateCallback: () => {},
-};
+import { RoomContext } from "../contexts/RoomContext";
 
 export default function CreateRoomPage(props) {
     const history = useHistory();
+    const { setRoomCode, defaultRoomProps } = useContext(RoomContext);
     const [cookies, setCookie, removeCookie] = useCookies(["csrftoken"]);
 
-    const title = props.update ? "Update Room" : "Create a Room";
-    const [guestCanPause, setGuestCanPause] = useState(props.guestCanPause);
-    const [defaultGuestCanPause, setDefaultGuestCanPause] = useState(
-        props.guestCanPause
-    );
-    const [votesToSkip, setVotesToSkip] = useState(props.votesToSkip);
-    const [logMessage, setLogMessage] = useState("");
-    const [updateError, setUpdateError] = useState(false);
+    const [guestCanPause, setGuestCanPause] = useState(defaultRoomProps.guestCanPause);
+    const [votesToSkip, setVotesToSkip] = useState(defaultRoomProps.votesToSkip);
 
     function handleVotesChange(e) {
         setVotesToSkip(Number(e.target.value));
@@ -53,7 +30,7 @@ export default function CreateRoomPage(props) {
         setGuestCanPause(e.target.value === "true" ? true : false);
     }
 
-    function handleRoomButtonPressed() {
+    function handleCreateRoomButton() {
         const requestOptions = {
             method: "POST",
             headers: {
@@ -68,96 +45,22 @@ export default function CreateRoomPage(props) {
 
         fetch("/api/create-room", requestOptions)
             .then((response) => response.json())
-            .then((data) => history.push("/room/" + data.code));
+            .then((data) => {
+                if (data.code === null)
+                    history.push('/');
+                else {
+                    setRoomCode(data.code);
+                    history.push("/room/" + data.code)
+                }
+            });
     }
 
-    function handleUpdateButtonPressed() {
-        const requestOptions = {
-            method: "PATCH",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": cookies.csrftoken,
-            },
-            body: JSON.stringify({
-                votes_to_skip: votesToSkip,
-                guest_can_pause: guestCanPause,
-                code: props.roomCode,
-            }),
-        };
-
-        fetch("/api/update-room", requestOptions).then((response) => {
-            if (response.ok) setLogMessage("Room updated successfully!");
-            else setLogMessage("Error updating room...");
-
-            props.updateCallback();
-        });
-    }
-
-    function renderCreateButtons() {
-        return (
-            <Grid container spacing={1}>
-                <Grid item xs={12} align="center">
-                    <Button
-                        color="primary"
-                        variant="contained"
-                        onClick={handleRoomButtonPressed}
-                    >
-                        Create A Room
-                    </Button>
-                </Grid>
-
-                <Grid item xs={12} align="center">
-                    <Button
-                        color="secondary"
-                        variant="contained"
-                        to="/"
-                        component={Link}
-                    >
-                        Back
-                    </Button>
-                </Grid>
-            </Grid>
-        );
-    }
-
-    function renderUpdateButtons() {
-        return (
-            <Grid item xs={12} align="center">
-                <Button
-                    color="primary"
-                    variant="contained"
-                    onClick={handleUpdateButtonPressed}
-                >
-                    Update Room
-                </Button>
-            </Grid>
-        );
-    }
 
     return (
         <Grid container spacing={1}>
             <Grid item xs={12} align="center">
-                <Collapse in={logMessage != ""}>
-                    {updateError === true ? (
-                        <Alert
-                            severity="error"
-                            onClose={() => setLogMessage("")}
-                        >
-                            {logMessage}
-                        </Alert>
-                    ) : (
-                        <Alert
-                            severity="success"
-                            onClose={() => setLogMessage("")}
-                        >
-                            {logMessage}
-                        </Alert>
-                    )}
-                </Collapse>
-            </Grid>
-            <Grid item xs={12} align="center">
                 <Typography component="h4" variant="h4">
-                    {title}
+                    Create a Room
                 </Typography>
             </Grid>
             <Grid item xs={12} align="center">
@@ -169,7 +72,7 @@ export default function CreateRoomPage(props) {
                     </FormHelperText>
                     <RadioGroup
                         row
-                        defaultValue={defaultGuestCanPause.toString()}
+                        defaultValue={defaultRoomProps.guestCanPause.toString()}
                         onChange={handleGuestCanPauseChange}
                     >
                         <FormControlLabel
@@ -204,7 +107,35 @@ export default function CreateRoomPage(props) {
                     </FormHelperText>
                 </FormControl>
             </Grid>
-            {props.update ? renderUpdateButtons() : renderCreateButtons()}
+            <Grid container spacing={1}>
+                <Grid item xs={12} align="center">
+                    <Button
+                        color="primary"
+                        variant="contained"
+                        onClick={handleCreateRoomButton}
+                    >
+                        Create A Room
+                    </Button>
+                </Grid>
+
+                <Grid item xs={12} align="center">
+                    <Button
+                        color="secondary"
+                        variant="contained"
+                        to="/"
+                        component={Link}
+                    >
+                        Back
+                    </Button>
+                </Grid>
+            </Grid>
         </Grid>
     );
 }
+
+CreateRoomPage.propTypes = {
+    votesToSkip: PropTypes.number.isRequired,
+    guestCanPause: PropTypes.bool.isRequired,
+    roomCode: PropTypes.string.isRequired,
+    updateCallback: PropTypes.func.isRequired,
+};

@@ -1,23 +1,19 @@
 import { Button, Grid, Typography } from "@material-ui/core";
 import PropTypes from "prop-types";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
-import { useHistory, useParams } from "react-router-dom";
-import CreateRoomPage from "./CreateRoomPage";
+import { Redirect, useHistory, useParams } from "react-router-dom";
+import { RoomContext } from "../contexts/RoomContext";
 
-Room.propTypes = {
-    leaveRoomCallback: PropTypes.func.isRequired,
-};
-
-export default function Room({ leaveRoomCallback }) {
+export default function Room(props) {
     const history = useHistory();
-    const [cookies, setCookie, removeCookie] = useCookies(["csrftoken"]);
     const { roomCode } = useParams();
+    const { setRoomCode, getRoomDetails } = useContext(RoomContext);
+    const [cookies, setCookie, removeCookie] = useCookies(["csrftoken"]);
 
     const [votesToSkip, setVotesToSkip] = useState(2);
     const [guestCanPause, setGuestCanPause] = useState(false);
     const [isHost, setIsHost] = useState(false);
-    const [showSettings, setShowSettings] = useState(false);
 
     function leaveButtonPressed() {
         fetch("/api/leave-room", {
@@ -27,78 +23,27 @@ export default function Room({ leaveRoomCallback }) {
                 "X-CSRFToken": cookies.csrftoken,
             },
         }).then((response) => {
-            leaveRoomCallback();
+            clearRoomCode();
             history.push("/");
         });
     }
-
-    function updateShowSettings(value) {
-        setShowSettings(value);
+        
+    function clearRoomCode() {
+        setRoomCode("");
     }
+    
+    useEffect(async () => {
+        const result = await getRoomDetails(roomCode);
+        if (result.response.status !== 200) {
+            clearRoomCode();
+            history.push("/");
+        }
 
-    function renderSettingsButton() {
-        return (
-            <Grid item xs={12} align="center">
-                <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => updateShowSettings(true)}
-                >
-                    Settings
-                </Button>
-            </Grid>
-        );
-    }
-
-    function renderSettings() {
-        return (
-            <Grid container spacing={1}>
-                <Grid item xs={12} align="center">
-                    <CreateRoomPage
-                        update={true}
-                        votesToSkip={votesToSkip}
-                        guestCanPause={guestCanPause}
-                        roomCode={roomCode}
-                        updateCallback={getRoomDetails}
-                    />
-                </Grid>
-                <Grid item xs={12} align="center">
-                    <Button
-                        variant="contained"
-                        color="secondary"
-                        onClick={() => updateShowSettings(false)}
-                    >
-                        Close
-                    </Button>
-                </Grid>
-            </Grid>
-        );
-    }
-
-    function getRoomDetails() {
-        fetch("/api/get-room" + "?code=" + roomCode)
-            .then((response) => {
-                if (!response.ok) {
-                    leaveRoomCallback();
-                    history.push("/");
-                }
-
-                return response.json();
-            })
-            .then((data) => {
-                setVotesToSkip(data.votes_to_skip);
-                setGuestCanPause(data.guest_can_pause);
-                setIsHost(data.is_host);
-            });
-    }
-
-    useEffect(() => {
-        getRoomDetails();
+        setVotesToSkip(result.data.votes_to_skip);
+        setGuestCanPause(result.data.guest_can_pause);
+        setIsHost(result.data.is_host);
+        setRoomCode(roomCode);
     }, []);
-
-    if (showSettings) {
-        return renderSettings();
-    }
 
     return (
         <Grid container spacing={1}>
@@ -122,7 +67,19 @@ export default function Room({ leaveRoomCallback }) {
                     Host: {isHost ? "yes" : "no"}
                 </Typography>
             </Grid>
-            {isHost ? renderSettingsButton() : null}
+            {isHost ? (
+                <Grid item xs={12} align="center">
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => history.push(`/room/${roomCode}/settings`)}
+                    >
+                        Settings
+                    </Button>
+                </Grid>
+            ) : (
+                ''
+            )}
             <Grid item xs={12} align="center">
                 <Button
                     variant="contained"

@@ -1,86 +1,44 @@
-import React, { useEffect, useState } from "react";
-import {
-    BrowserRouter as Router,
-    Switch,
-    Route,
-    Link,
-    Redirect,
-} from "react-router-dom";
-import { Grid, Button, ButtonGroup, Typography } from "@material-ui/core";
-
-import RoomJoinPage from "./RoomJoinPage";
-import CreateRoomPage from "./CreateRoomPage";
-import Room from "./Room";
+import { Button, ButtonGroup, Grid, Typography } from "@material-ui/core";
+import React, { useContext, useEffect } from "react";
+import { Link, useHistory } from "react-router-dom";
+import { RoomContext } from "../contexts/RoomContext";
 
 export default function HomePage() {
-    const [roomCode, setRoomCode] = useState(null);
+    const { setRoomCode } = useContext(RoomContext);
+    const history = useHistory();
 
-    useEffect(async () => {
+    useEffect(() => {
         fetch("/api/user-in-room")
             .then((response) => response.json())
             .then((data) => {
-                setRoomCode(data.code);
+                if (data.code !== null) {
+                    setRoomCode(data.code);
+                    history.push("/room/" + data.code);
+                }
             });
     }, []);
 
-    function renderHomePage() {
-        return (
-            <Grid container spacing={3}>
-                <Grid item xs={12} align="center">
-                    <Typography variant="h3" compact="h3">
-                        House Party
-                    </Typography>
-                </Grid>
-                <Grid item xs={12} align="center">
-                    <ButtonGroup
-                        disableElevation
-                        variant="contained"
-                        color="primary"
-                    >
-                        <Button color="primary" to="/join" component={Link}>
-                            Join a Room
-                        </Button>
-                        <Button color="secondary" to="/create" component={Link}>
-                            Create a Room
-                        </Button>
-                    </ButtonGroup>
-                </Grid>
-            </Grid>
-        );
-    }
-
-    function clearRoomCode() {
-        setRoomCode(null);
-    }
-
     return (
-        <Router>
-            <Switch>
-                <Route
-                    exact
-                    path="/"
-                    render={() => {
-                        return roomCode ? (
-                            <Redirect to={`/room/${roomCode}`} />
-                        ) : (
-                            renderHomePage()
-                        );
-                    }}
-                />
-                <Route path="/join" component={RoomJoinPage} />
-                <Route path="/create" component={CreateRoomPage} />
-                <Route
-                    path="/room/:roomCode"
-                    render={(props) => {
-                        return (
-                            <Room
-                                {...props}
-                                leaveRoomCallback={clearRoomCode}
-                            />
-                        );
-                    }}
-                />
-            </Switch>
-        </Router>
+        <Grid container spacing={3}>
+            <Grid item xs={12} align="center">
+                <Typography variant="h3" compact="h3">
+                    House Party
+                </Typography>
+            </Grid>
+            <Grid item xs={12} align="center">
+                <ButtonGroup
+                    disableElevation
+                    variant="contained"
+                    color="primary"
+                >
+                    <Button color="primary" to="/join" component={Link}>
+                        Join a Room
+                    </Button>
+                    <Button color="secondary" to="/create" component={Link}>
+                        Create a Room
+                    </Button>
+                </ButtonGroup>
+            </Grid>
+        </Grid>
     );
 }

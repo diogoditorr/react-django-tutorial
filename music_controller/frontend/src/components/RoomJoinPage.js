@@ -1,13 +1,14 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { TextField, Button, Grid, Typography } from "@material-ui/core";
 import { Link, useHistory } from "react-router-dom";
 import { useCookies } from "react-cookie";
+import { RoomContext } from "../contexts/RoomContext";
 
 export default function RoomJoinPage() {
-    const [cookies, setCookie, removeCookie] = useCookies(['csrftoken']);
     const history = useHistory();
+    const { roomCode, setRoomCode } = useContext(RoomContext);
+    const [cookies, setCookie, removeCookie] = useCookies(['csrftoken']);
 
-    const [roomCode, setRoomCode] = useState("");
     const [error, setError] = useState("");
 
     function handleTextFieldChange(e) {
@@ -35,7 +36,6 @@ export default function RoomJoinPage() {
             .catch((error) => {
                 console.log(error);
             });
-        // console.log(roomCode);
     }
 
     return (
