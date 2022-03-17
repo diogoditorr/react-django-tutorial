@@ -11,7 +11,7 @@ export default function RoomJoinPage() {
 
     const [error, setError] = useState("");
 
-    function handleTextFieldChange(e) {
+    function handleTextFieldChange(e: React.ChangeEvent<HTMLInputElement>) {
         setRoomCode(e.target.value);
     }
 
@@ -40,13 +40,13 @@ export default function RoomJoinPage() {
 
     return (
         <Grid container spacing={1}>
-            <Grid item xs={12} align="center">
+            <Grid item xs={12} alignItems="center">
                 <Typography variant="h4" component="h4">
                     Join a Room
                 </Typography>
             </Grid>
 
-            <Grid item xs={12} align="center">
+            <Grid item xs={12} alignItems="center">
                 <TextField
                     error={error ? true : false}
                     label="Code"
@@ -58,7 +58,7 @@ export default function RoomJoinPage() {
                 ></TextField>
             </Grid>
 
-            <Grid item xs={12} align="center">
+            <Grid item xs={12} alignItems="center">
                 <Button
                     variant="contained"
                     color="primary"
@@ -67,7 +67,7 @@ export default function RoomJoinPage() {
                     Enter Room
                 </Button>
             </Grid>
-            <Grid item xs={12} align="center">
+            <Grid item xs={12} alignItems="center">
                 <Button
                     variant="contained"
                     color="secondary"

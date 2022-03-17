@@ -1,13 +1,16 @@
 import { Button, Grid, Typography } from "@material-ui/core";
-import PropTypes from "prop-types";
 import React, { useContext, useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
-import { Redirect, useHistory, useParams } from "react-router-dom";
+import { useHistory, useParams } from "react-router-dom";
 import { RoomContext } from "../contexts/RoomContext";
 
-export default function Room(props) {
+type RoomParams = {
+    roomCode: string;
+};
+
+export default function Room() {
     const history = useHistory();
-    const { roomCode } = useParams();
+    const { roomCode } = useParams<RoomParams>();
     const { setRoomCode, getRoomDetails } = useContext(RoomContext);
     const [cookies, setCookie, removeCookie] = useCookies(["csrftoken"]);
 
@@ -27,60 +30,65 @@ export default function Room(props) {
             history.push("/");
         });
     }
-        
+
     function clearRoomCode() {
         setRoomCode("");
     }
-    
-    useEffect(async () => {
-        const result = await getRoomDetails(roomCode);
-        if (result.response.status !== 200) {
-            clearRoomCode();
-            history.push("/");
+
+    useEffect(() => {
+        async function fetchData() {
+            const result = await getRoomDetails(roomCode);
+            if (result.response.status !== 200) {
+                clearRoomCode();
+                history.push("/");
+            }
+            setVotesToSkip(result.data.votes_to_skip);
+            setGuestCanPause(result.data.guest_can_pause);
+            setIsHost(result.data.is_host);
+            setRoomCode(roomCode);
         }
 
-        setVotesToSkip(result.data.votes_to_skip);
-        setGuestCanPause(result.data.guest_can_pause);
-        setIsHost(result.data.is_host);
-        setRoomCode(roomCode);
+        fetchData();
     }, []);
 
     return (
         <Grid container spacing={1}>
-            <Grid item xs={12} align="center">
+            <Grid item xs={12} alignItems="center">
                 <Typography variant="h4" component="h4">
                     Code: {roomCode}
                 </Typography>
             </Grid>
-            <Grid item xs={12} align="center">
+            <Grid item xs={12} alignItems="center">
                 <Typography variant="h6" component="h6">
                     Votes: {votesToSkip}
                 </Typography>
             </Grid>
-            <Grid item xs={12} align="center">
+            <Grid item xs={12} alignItems="center">
                 <Typography variant="h6" component="h6">
                     Guest Can Pause: {guestCanPause ? "yes" : "no"}
                 </Typography>
             </Grid>
-            <Grid item xs={12} align="center">
+            <Grid item xs={12} alignItems="center">
                 <Typography variant="h6" component="h6">
                     Host: {isHost ? "yes" : "no"}
                 </Typography>
             </Grid>
             {isHost ? (
-                <Grid item xs={12} align="center">
+                <Grid item xs={12} alignItems="center">
                     <Button
                         variant="contained"
                         color="primary"
-                        onClick={() => history.push(`/room/${roomCode}/settings`)}
+                        onClick={() =>
+                            history.push(`/room/${roomCode}/settings`)
+                        }
                     >
                         Settings
                     </Button>
                 </Grid>
             ) : (
-                ''
+                ""
             )}
-            <Grid item xs={12} align="center">
+            <Grid item xs={12} alignItems="center">
                 <Button
                     variant="contained"
                     color="secondary"

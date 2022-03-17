@@ -1,12 +1,13 @@
 import {
-    Button, FormControl,
+    Button,
+    FormControl,
     FormControlLabel,
     FormHelperText,
     Grid,
     Radio,
     RadioGroup,
     TextField,
-    Typography
+    Typography,
 } from "@material-ui/core";
 import PropTypes from "prop-types";
 import React, { useContext, useState } from "react";
@@ -14,19 +15,23 @@ import { useCookies } from "react-cookie";
 import { Link, useHistory } from "react-router-dom";
 import { RoomContext } from "../contexts/RoomContext";
 
-export default function CreateRoomPage(props) {
+export default function CreateRoomPage() {
     const history = useHistory();
     const { setRoomCode, defaultRoomProps } = useContext(RoomContext);
     const [cookies, setCookie, removeCookie] = useCookies(["csrftoken"]);
 
-    const [guestCanPause, setGuestCanPause] = useState(defaultRoomProps.guestCanPause);
-    const [votesToSkip, setVotesToSkip] = useState(defaultRoomProps.votesToSkip);
+    const [guestCanPause, setGuestCanPause] = useState(
+        defaultRoomProps.guestCanPause
+    );
+    const [votesToSkip, setVotesToSkip] = useState(
+        defaultRoomProps.votesToSkip
+    );
 
-    function handleVotesChange(e) {
+    function handleVotesChange(e: React.ChangeEvent<HTMLInputElement>) {
         setVotesToSkip(Number(e.target.value));
     }
 
-    function handleGuestCanPauseChange(e) {
+    function handleGuestCanPauseChange(e: React.ChangeEvent<HTMLInputElement>) {
         setGuestCanPause(e.target.value === "true" ? true : false);
     }
 
@@ -46,27 +51,25 @@ export default function CreateRoomPage(props) {
         fetch("/api/create-room", requestOptions)
             .then((response) => response.json())
             .then((data) => {
-                if (data.code === null)
-                    history.push('/');
+                if (data.code === null) history.push("/");
                 else {
                     setRoomCode(data.code);
-                    history.push("/room/" + data.code)
+                    history.push("/room/" + data.code);
                 }
             });
     }
 
-
     return (
         <Grid container spacing={1}>
-            <Grid item xs={12} align="center">
+            <Grid item xs={12} alignItems="center">
                 <Typography component="h4" variant="h4">
                     Create a Room
                 </Typography>
             </Grid>
-            <Grid item xs={12} align="center">
+            <Grid item xs={12} alignItems="center">
                 <FormControl component="fieldset">
                     <FormHelperText>
-                        <span align="center">
+                        <span>
                             Guest Control of Playback State
                         </span>
                     </FormHelperText>
@@ -90,7 +93,7 @@ export default function CreateRoomPage(props) {
                     </RadioGroup>
                 </FormControl>
             </Grid>
-            <Grid item xs={12} align="center">
+            <Grid item xs={12} alignItems="center">
                 <FormControl>
                     <TextField
                         required={true}
@@ -103,12 +106,12 @@ export default function CreateRoomPage(props) {
                         onChange={handleVotesChange}
                     />
                     <FormHelperText>
-                        <span align="center">Votes Required To Skip Song</span>
+                        <span>Votes Required To Skip Song</span>
                     </FormHelperText>
                 </FormControl>
             </Grid>
             <Grid container spacing={1}>
-                <Grid item xs={12} align="center">
+                <Grid item xs={12} alignItems="center">
                     <Button
                         color="primary"
                         variant="contained"
@@ -118,7 +121,7 @@ export default function CreateRoomPage(props) {
                     </Button>
                 </Grid>
 
-                <Grid item xs={12} align="center">
+                <Grid item xs={12} alignItems="center">
                     <Button
                         color="secondary"
                         variant="contained"
@@ -132,10 +135,3 @@ export default function CreateRoomPage(props) {
         </Grid>
     );
 }
-
-CreateRoomPage.propTypes = {
-    votesToSkip: PropTypes.number.isRequired,
-    guestCanPause: PropTypes.bool.isRequired,
-    roomCode: PropTypes.string.isRequired,
-    updateCallback: PropTypes.func.isRequired,
-};

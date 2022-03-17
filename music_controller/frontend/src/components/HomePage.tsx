@@ -3,6 +3,10 @@ import React, { useContext, useEffect } from "react";
 import { Link, useHistory } from "react-router-dom";
 import { RoomContext } from "../contexts/RoomContext";
 
+type UserInRoomData = {
+    code: string | null;
+}
+
 export default function HomePage() {
     const { setRoomCode } = useContext(RoomContext);
     const history = useHistory();
@@ -10,7 +14,7 @@ export default function HomePage() {
     useEffect(() => {
         fetch("/api/user-in-room")
             .then((response) => response.json())
-            .then((data) => {
+            .then((data: UserInRoomData) => {
                 if (data.code !== null) {
                     setRoomCode(data.code);
                     history.push("/room/" + data.code);
@@ -20,12 +24,12 @@ export default function HomePage() {
 
     return (
         <Grid container spacing={3}>
-            <Grid item xs={12} align="center">
-                <Typography variant="h3" compact="h3">
+            <Grid item xs={12} alignItems="center">
+                <Typography variant="h3">
                     House Party
                 </Typography>
             </Grid>
-            <Grid item xs={12} align="center">
+            <Grid item xs={12} alignItems="center">
                 <ButtonGroup
                     disableElevation
                     variant="contained"

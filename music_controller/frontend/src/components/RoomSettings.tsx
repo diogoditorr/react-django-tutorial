@@ -16,10 +16,14 @@ import { useCookies } from "react-cookie";
 import { useHistory, useParams } from "react-router-dom";
 import { RoomContext } from "../contexts/RoomContext";
 
+type RoomSettingsParams = {
+    roomCode: string;
+}
+
 export default function RoomSettings() {
     const history = useHistory();
     const { getRoomDetails, defaultRoomProps } = useContext(RoomContext);
-    const { roomCode } = useParams();
+    const { roomCode } = useParams<RoomSettingsParams>();
     const [cookies, setCookie, removeCookie] = useCookies(["csrftoken"]);
 
     const [guestCanPause, setGuestCanPause] = useState(
@@ -32,11 +36,11 @@ export default function RoomSettings() {
     const [logMessage, setLogMessage] = useState("");
     const [error, setError] = useState(false);
 
-    function handleVotesChange(e) {
+    function handleVotesChange(e: React.ChangeEvent<HTMLInputElement>) {
         setVotesToSkip(Number(e.target.value));
     }
 
-    function handleGuestCanPauseChange(e) {
+    function handleGuestCanPauseChange(e: React.ChangeEvent<HTMLInputElement>) {
         setGuestCanPause(e.target.value === "true" ? true : false);
     }
 
@@ -65,21 +69,25 @@ export default function RoomSettings() {
         });
     }
 
-    useEffect(async () => {
-        const result = await getRoomDetails(roomCode);
-        if (result.response.status !== 200) {
-            history.push("/");
+    useEffect(() => {
+        async function fetchData() {
+            const result = await getRoomDetails(roomCode);
+            if (result.response.status !== 200) {
+                history.push("/");
+            }
+
+            setGuestCanPause(result.data.guest_can_pause);
+            setVotesToSkip(result.data.votes_to_skip);
         }
 
-        setGuestCanPause(result.data.guest_can_pause);
-        setVotesToSkip(result.data.votes_to_skip);
+        fetchData();
     }, []);
 
     return (
         <Grid container spacing={1}>
-            <Grid item xs={12} align="center">
+            <Grid item xs={12} alignItems="center">
                 <Grid container spacing={1}>
-                    <Grid item xs={12} align="center">
+                    <Grid item xs={12} alignItems="center">
                         <Collapse in={logMessage != ""}>
                             {error === true ? (
                                 <Alert
@@ -98,15 +106,15 @@ export default function RoomSettings() {
                             )}
                         </Collapse>
                     </Grid>
-                    <Grid item xs={12} align="center">
+                    <Grid item xs={12} alignItems="center">
                         <Typography component="h4" variant="h4">
                             Update Room
                         </Typography>
                     </Grid>
-                    <Grid item xs={12} align="center">
+                    <Grid item xs={12} alignItems="center">
                         <FormControl component="fieldset">
                             <FormHelperText>
-                                <span align="center">
+                                <span>
                                     Guest Control of Playback State
                                 </span>
                             </FormHelperText>
@@ -130,7 +138,7 @@ export default function RoomSettings() {
                             </RadioGroup>
                         </FormControl>
                     </Grid>
-                    <Grid item xs={12} align="center">
+                    <Grid item xs={12} alignItems="center">
                         <FormControl>
                             <TextField
                                 required={true}
@@ -143,13 +151,13 @@ export default function RoomSettings() {
                                 onChange={handleVotesChange}
                             />
                             <FormHelperText>
-                                <span align="center">
+                                <span>
                                     Votes Required To Skip Song
                                 </span>
                             </FormHelperText>
                         </FormControl>
                     </Grid>
-                    <Grid item xs={12} align="center">
+                    <Grid item xs={12} alignItems="center">
                         <Button
                             color="primary"
                             variant="contained"
@@ -160,7 +168,7 @@ export default function RoomSettings() {
                     </Grid>
                 </Grid>
             </Grid>
-            <Grid item xs={12} align="center">
+            <Grid item xs={12} alignItems="center">
                 <Button
                     variant="contained"
                     color="secondary"
