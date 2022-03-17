@@ -11,7 +11,7 @@ type RoomParams = {
 export default function Room() {
     const history = useHistory();
     const { roomCode } = useParams<RoomParams>();
-    const { setRoomCode, getRoomDetails } = useContext(RoomContext);
+    const { setRoomCode, getRoom } = useContext(RoomContext);
     const [cookies, setCookie, removeCookie] = useCookies(["csrftoken"]);
 
     const [votesToSkip, setVotesToSkip] = useState(2);
@@ -37,7 +37,7 @@ export default function Room() {
 
     useEffect(() => {
         async function fetchData() {
-            const result = await getRoomDetails(roomCode);
+            const result = await getRoom(roomCode);
             if (result.response.status !== 200) {
                 clearRoomCode();
                 history.push("/");
@@ -52,29 +52,29 @@ export default function Room() {
     }, []);
 
     return (
-        <Grid container spacing={1}>
-            <Grid item xs={12} alignItems="center">
+        <Grid container spacing={1} direction="column" alignItems="center">
+            <Grid item xs={12}>
                 <Typography variant="h4" component="h4">
                     Code: {roomCode}
                 </Typography>
             </Grid>
-            <Grid item xs={12} alignItems="center">
+            <Grid item xs={12}>
                 <Typography variant="h6" component="h6">
                     Votes: {votesToSkip}
                 </Typography>
             </Grid>
-            <Grid item xs={12} alignItems="center">
+            <Grid item xs={12}>
                 <Typography variant="h6" component="h6">
                     Guest Can Pause: {guestCanPause ? "yes" : "no"}
                 </Typography>
             </Grid>
-            <Grid item xs={12} alignItems="center">
+            <Grid item xs={12}>
                 <Typography variant="h6" component="h6">
                     Host: {isHost ? "yes" : "no"}
                 </Typography>
             </Grid>
             {isHost ? (
-                <Grid item xs={12} alignItems="center">
+                <Grid item xs={12}>
                     <Button
                         variant="contained"
                         color="primary"
@@ -88,7 +88,7 @@ export default function Room() {
             ) : (
                 ""
             )}
-            <Grid item xs={12} alignItems="center">
+            <Grid item xs={12}>
                 <Button
                     variant="contained"
                     color="secondary"

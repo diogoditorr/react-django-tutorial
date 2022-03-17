@@ -22,7 +22,7 @@ type RoomSettingsParams = {
 
 export default function RoomSettings() {
     const history = useHistory();
-    const { getRoomDetails, defaultRoomProps } = useContext(RoomContext);
+    const { getRoom, defaultRoomProps } = useContext(RoomContext);
     const { roomCode } = useParams<RoomSettingsParams>();
     const [cookies, setCookie, removeCookie] = useCookies(["csrftoken"]);
 
@@ -71,7 +71,7 @@ export default function RoomSettings() {
 
     useEffect(() => {
         async function fetchData() {
-            const result = await getRoomDetails(roomCode);
+            const result = await getRoom(roomCode);
             if (result.response.status !== 200) {
                 history.push("/");
             }
@@ -84,10 +84,10 @@ export default function RoomSettings() {
     }, []);
 
     return (
-        <Grid container spacing={1}>
-            <Grid item xs={12} alignItems="center">
-                <Grid container spacing={1}>
-                    <Grid item xs={12} alignItems="center">
+        <Grid container spacing={1} direction="column" alignItems="center">
+            <Grid item xs={12}>
+                <Grid container spacing={1} direction="column" alignItems="center">
+                    <Grid item xs={12}>
                         <Collapse in={logMessage != ""}>
                             {error === true ? (
                                 <Alert
@@ -106,12 +106,12 @@ export default function RoomSettings() {
                             )}
                         </Collapse>
                     </Grid>
-                    <Grid item xs={12} alignItems="center">
+                    <Grid item xs={12}>
                         <Typography component="h4" variant="h4">
                             Update Room
                         </Typography>
                     </Grid>
-                    <Grid item xs={12} alignItems="center">
+                    <Grid item xs={12}>
                         <FormControl component="fieldset">
                             <FormHelperText>
                                 <span>
@@ -138,7 +138,7 @@ export default function RoomSettings() {
                             </RadioGroup>
                         </FormControl>
                     </Grid>
-                    <Grid item xs={12} alignItems="center">
+                    <Grid item xs={12}>
                         <FormControl>
                             <TextField
                                 required={true}
@@ -157,7 +157,7 @@ export default function RoomSettings() {
                             </FormHelperText>
                         </FormControl>
                     </Grid>
-                    <Grid item xs={12} alignItems="center">
+                    <Grid item xs={12}>
                         <Button
                             color="primary"
                             variant="contained"
@@ -168,7 +168,7 @@ export default function RoomSettings() {
                     </Grid>
                 </Grid>
             </Grid>
-            <Grid item xs={12} alignItems="center">
+            <Grid item xs={12}>
                 <Button
                     variant="contained"
                     color="secondary"

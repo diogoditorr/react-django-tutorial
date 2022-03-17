@@ -8,22 +8,26 @@ type UserInRoomData = {
 }
 
 export default function HomePage() {
-    const { setRoomCode } = useContext(RoomContext);
+    const { roomCode, setRoomCode } = useContext(RoomContext);
     const history = useHistory();
 
     useEffect(() => {
-        fetch("/api/user-in-room")
-            .then((response) => response.json())
-            .then((data: UserInRoomData) => {
-                if (data.code !== null) {
-                    setRoomCode(data.code);
-                    history.push("/room/" + data.code);
-                }
-            });
+        console.log('Room Code:', roomCode);
+        if (!roomCode)
+            fetch("/api/user-in-room")
+                .then((response) => response.json())
+                .then((data: UserInRoomData) => {
+                    if (data.code !== null) {
+                        setRoomCode(data.code);
+                        history.push("/room/" + data.code);
+                    }
+                });
+        else
+            history.push("/room/" + roomCode);
     }, []);
 
     return (
-        <Grid container spacing={3}>
+        <Grid container spacing={3} direction="column" alignItems="center">
             <Grid item xs={12} alignItems="center">
                 <Typography variant="h3">
                     House Party

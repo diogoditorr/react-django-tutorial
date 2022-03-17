@@ -20,7 +20,7 @@ type RoomContextType = {
     defaultRoomProps: DefaultRoomProps;
     roomCode: string;
     setRoomCode: Dispatch<SetStateAction<string>>;
-    getRoomDetails: (roomCode: string) => Promise<{
+    getRoom: (roomCode: string) => Promise<{
         data: RoomData;
         response: Response;
     }>;
@@ -39,7 +39,7 @@ export function RoomContextProvider(props: RoomContextProviderProps) {
         guestCanPause: true,
     })
 
-    async function getRoomDetails(roomCode: string) {
+    async function getRoom(roomCode: string) {
         const response = await fetch("/api/get-room" + "?code=" + roomCode);
         const data: RoomData = await response.json();
 
@@ -51,7 +51,7 @@ export function RoomContextProvider(props: RoomContextProviderProps) {
         value={{
                 defaultRoomProps,
                 roomCode,
-                getRoomDetails,
+                getRoom,
                 setRoomCode,
             }}
         >

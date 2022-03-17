@@ -1,12 +1,11 @@
-import React, { useContext, useState } from "react";
+import React, { useState } from "react";
 import { TextField, Button, Grid, Typography } from "@material-ui/core";
 import { Link, useHistory } from "react-router-dom";
 import { useCookies } from "react-cookie";
-import { RoomContext } from "../contexts/RoomContext";
 
 export default function RoomJoinPage() {
     const history = useHistory();
-    const { roomCode, setRoomCode } = useContext(RoomContext);
+    const [roomCode, setRoomCode] = useState('');
     const [cookies, setCookie, removeCookie] = useCookies(['csrftoken']);
 
     const [error, setError] = useState("");
@@ -39,7 +38,7 @@ export default function RoomJoinPage() {
     }
 
     return (
-        <Grid container spacing={1}>
+        <Grid container spacing={1} direction="column" alignItems="center">
             <Grid item xs={12} alignItems="center">
                 <Typography variant="h4" component="h4">
                     Join a Room
