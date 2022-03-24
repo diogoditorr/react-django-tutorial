@@ -1,5 +1,5 @@
 import { Button, Grid, Typography } from "@material-ui/core";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useDebugValue, useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
 import { useHistory, useParams } from "react-router-dom";
 import { RoomContext } from "../contexts/RoomContext";
@@ -7,6 +7,14 @@ import { RoomContext } from "../contexts/RoomContext";
 type RoomParams = {
     roomCode: string;
 };
+
+type IsAuthenticatedData = {
+    status: boolean;
+}
+
+type GetAuthData = {
+    url: string;
+}
 
 export default function Room() {
     const history = useHistory();
@@ -17,8 +25,9 @@ export default function Room() {
     const [votesToSkip, setVotesToSkip] = useState(2);
     const [guestCanPause, setGuestCanPause] = useState(false);
     const [isHost, setIsHost] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-    function leaveButtonPressed() {
+    function leaveRoom() {
         fetch("/api/leave-room", {
             method: "POST",
             headers: {
@@ -35,19 +44,35 @@ export default function Room() {
         setRoomCode("");
     }
 
-    useEffect(() => {
-        async function fetchData() {
-            const result = await getRoom(roomCode);
-            if (result.response.status !== 200) {
-                clearRoomCode();
-                history.push("/");
-            }
-            setVotesToSkip(result.data.votes_to_skip);
-            setGuestCanPause(result.data.guest_can_pause);
-            setIsHost(result.data.is_host);
-            setRoomCode(roomCode);
+    async function authenticateSpotify() {
+        let response = await fetch('/spotify/is-authenticated')
+        const isAuthenticatedData: IsAuthenticatedData = await response.json();
+        
+        if (isAuthenticatedData.status === false) {
+            response = await fetch('/spotify/get-auth-url');
+            const getAuthData: GetAuthData = await response.json()
+            window.location.replace(getAuthData.url);
         }
+        setIsAuthenticated(isAuthenticatedData.status);
+    }
 
+    async function fetchData() {
+        const result = await getRoom(roomCode);
+        if (result.response.status !== 200) {
+            clearRoomCode();
+            history.push("/");
+        }
+        setVotesToSkip(result.data.votes_to_skip);
+        setGuestCanPause(result.data.guest_can_pause);
+        setIsHost(result.data.is_host);
+        setRoomCode(roomCode);
+
+        if (result.data.is_host) {
+            await authenticateSpotify();
+        }
+    }
+
+    useEffect(() => {
         fetchData();
     }, []);
 
@@ -92,7 +117,7 @@ export default function Room() {
                 <Button
                     variant="contained"
                     color="secondary"
-                    onClick={leaveButtonPressed}
+                    onClick={leaveRoom}
                 >
                     Leave Room
                 </Button>

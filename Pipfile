@@ -10,6 +10,8 @@ autopep8 = "*"
 django = "*"
 djangorestframework = "*"
 django-debug-toolbar = "*"
+python-dotenv = "*"
+requests = "*"
 
 [requires]
-python_version = "3.8"
+python_version = "3.10"

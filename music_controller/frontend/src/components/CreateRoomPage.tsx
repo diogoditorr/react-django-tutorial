@@ -7,9 +7,8 @@ import {
     Radio,
     RadioGroup,
     TextField,
-    Typography,
+    Typography
 } from "@material-ui/core";
-import PropTypes from "prop-types";
 import React, { useContext, useState } from "react";
 import { useCookies } from "react-cookie";
 import { Link, useHistory } from "react-router-dom";
@@ -60,13 +59,13 @@ export default function CreateRoomPage() {
     }
 
     return (
-        <Grid container spacing={1}>
-            <Grid item xs={12} alignItems="center">
+        <Grid container spacing={1} direction="column" alignItems="center">
+            <Grid item xs={12}>
                 <Typography component="h4" variant="h4">
                     Create a Room
                 </Typography>
             </Grid>
-            <Grid item xs={12} alignItems="center">
+            <Grid item xs={12}>
                 <FormControl component="fieldset">
                     <FormHelperText>
                         <span>
@@ -93,7 +92,7 @@ export default function CreateRoomPage() {
                     </RadioGroup>
                 </FormControl>
             </Grid>
-            <Grid item xs={12} alignItems="center">
+            <Grid item xs={12}>
                 <FormControl>
                     <TextField
                         required={true}
@@ -110,8 +109,8 @@ export default function CreateRoomPage() {
                     </FormHelperText>
                 </FormControl>
             </Grid>
-            <Grid container spacing={1}>
-                <Grid item xs={12} alignItems="center">
+            <Grid container spacing={1} direction="column" alignItems="center">
+                <Grid item xs={12}>
                     <Button
                         color="primary"
                         variant="contained"
@@ -121,7 +120,7 @@ export default function CreateRoomPage() {
                     </Button>
                 </Grid>
 
-                <Grid item xs={12} alignItems="center">
+                <Grid item xs={12}>
                     <Button
                         color="secondary"
                         variant="contained"

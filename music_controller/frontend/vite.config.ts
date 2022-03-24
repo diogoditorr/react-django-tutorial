@@ -10,9 +10,7 @@ export default defineConfig({
             input: './src/index.tsx',
             output: {
                 entryFileNames: '[name].js',
-                // sourcemap: true,
-                compact: true
             }
-        }
-    }
+        },
+    },
 })
