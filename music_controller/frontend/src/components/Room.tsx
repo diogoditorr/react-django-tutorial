@@ -1,8 +1,9 @@
 import { Button, Grid, Typography } from "@material-ui/core";
-import React, { useContext, useDebugValue, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
 import { useHistory, useParams } from "react-router-dom";
 import { RoomContext } from "../contexts/RoomContext";
+import MusicPlayer from "./MusicPlayer";
 
 type RoomParams = {
     roomCode: string;
@@ -10,11 +11,22 @@ type RoomParams = {
 
 type IsAuthenticatedData = {
     status: boolean;
-}
+};
 
 type GetAuthData = {
     url: string;
-}
+};
+
+export type Song = {
+    id: string;
+    title: string;
+    artist: string;
+    duration: number;
+    time: number;
+    image_url: string;
+    is_playing: boolean;
+    votes: number;
+};
 
 export default function Room() {
     const history = useHistory();
@@ -26,6 +38,7 @@ export default function Room() {
     const [guestCanPause, setGuestCanPause] = useState(false);
     const [isHost, setIsHost] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [song, setSong] = useState<Song | Record<string, never>>({});
 
     function leaveRoom() {
         fetch("/api/leave-room", {
@@ -45,15 +58,20 @@ export default function Room() {
     }
 
     async function authenticateSpotify() {
-        let response = await fetch('/spotify/is-authenticated')
+        let response = await fetch("/spotify/is-authenticated");
         const isAuthenticatedData: IsAuthenticatedData = await response.json();
-        
+
         if (isAuthenticatedData.status === false) {
-            response = await fetch('/spotify/get-auth-url');
-            const getAuthData: GetAuthData = await response.json()
+            response = await fetch("/spotify/get-auth-url");
+            const getAuthData: GetAuthData = await response.json();
             window.location.replace(getAuthData.url);
         }
         setIsAuthenticated(isAuthenticatedData.status);
+    }
+
+    async function getCurrentSong(): Promise<Song | Record<string, never>> {
+        const response = await fetch("/spotify/current-song");
+        return response.ok ? await response.json() : {};
     }
 
     async function fetchData() {
@@ -66,15 +84,23 @@ export default function Room() {
         setGuestCanPause(result.data.guest_can_pause);
         setIsHost(result.data.is_host);
         setRoomCode(roomCode);
-
-        if (result.data.is_host) {
-            await authenticateSpotify();
-        }
     }
 
     useEffect(() => {
         fetchData();
     }, []);
+
+    useEffect(() => {
+        if (isHost) {
+            authenticateSpotify();
+
+            const interval = setInterval(async () => {
+                setSong(await getCurrentSong());
+            }, 3000);
+
+            return () => clearInterval(interval);
+        }
+    }, [isHost]);
 
     return (
         <Grid container spacing={1} direction="column" alignItems="center">
@@ -83,21 +109,7 @@ export default function Room() {
                     Code: {roomCode}
                 </Typography>
             </Grid>
-            <Grid item xs={12}>
-                <Typography variant="h6" component="h6">
-                    Votes: {votesToSkip}
-                </Typography>
-            </Grid>
-            <Grid item xs={12}>
-                <Typography variant="h6" component="h6">
-                    Guest Can Pause: {guestCanPause ? "yes" : "no"}
-                </Typography>
-            </Grid>
-            <Grid item xs={12}>
-                <Typography variant="h6" component="h6">
-                    Host: {isHost ? "yes" : "no"}
-                </Typography>
-            </Grid>
+            {Object.keys(song).length > 0 && <MusicPlayer song={song} />}
             {isHost ? (
                 <Grid item xs={12}>
                     <Button

@@ -2,11 +2,12 @@ from datetime import datetime, timedelta
 from typing import Union
 
 from django.utils import timezone
-from requests import post
+from requests import post, put, get
 
 from .credentials import CLIENT_ID, CLIENT_SECRET
 from .models import SpotifyToken
 
+BASE_URL = "https://api.spotify.com/v1/me/"
 
 def get_user_tokens(session_key) -> SpotifyToken | None:
     user_tokens = SpotifyToken.objects.filter(user=session_key)
@@ -79,3 +80,18 @@ def refresh_spotify_token(session_key):
         expires_in, 
         refresh_token=None
     )
+
+def execute_spotify_api_request(session_key, endpoint, post_=False, put_=False):
+    tokens = get_user_tokens(session_key)
+    headers = {'Content-Type': 'application/json', 'Authorization': "Bearer " + tokens.access_token}
+
+    if post_:
+        post(BASE_URL + endpoint, headers=headers)
+    if put_:
+        put(BASE_URL + endpoint, headers=headers)
+
+    response = get(BASE_URL + endpoint, {}, headers=headers)
+    try:
+        return response.json()
+    except:
+        return {'Error': 'An issue occured while trying to retrieve data from Spotify'}
