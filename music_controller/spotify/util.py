@@ -9,6 +9,7 @@ from .models import SpotifyToken
 
 BASE_URL = "https://api.spotify.com/v1/me/"
 
+
 def get_user_tokens(session_key) -> SpotifyToken | None:
     user_tokens = SpotifyToken.objects.filter(user=session_key)
     if user_tokens.exists():
@@ -22,7 +23,7 @@ def update_or_create_user_tokens(
     access_token,
     token_type,
     expires_in: int,
-    refresh_token: None | str  = None,
+    refresh_token: None | str = None,
 ):
     tokens = get_user_tokens(session_key)
     expires_in: datetime = timezone.now() + timedelta(seconds=expires_in)
@@ -74,24 +75,37 @@ def refresh_spotify_token(session_key):
     expires_in = response.get('expires_in')
 
     update_or_create_user_tokens(
-        session_key, 
+        session_key,
         access_token,
         token_type,
-        expires_in, 
+        expires_in,
         refresh_token=None
     )
 
+
 def execute_spotify_api_request(session_key, endpoint, post_=False, put_=False):
     tokens = get_user_tokens(session_key)
-    headers = {'Content-Type': 'application/json', 'Authorization': "Bearer " + tokens.access_token}
+    headers = {'Content-Type': 'application/json',
+               'Authorization': "Bearer " + tokens.access_token}
 
     if post_:
-        post(BASE_URL + endpoint, headers=headers)
+        response = post(BASE_URL + endpoint, headers=headers)
+        return (response.json(), response.status_code)
+
     if put_:
-        put(BASE_URL + endpoint, headers=headers)
+        response = put(BASE_URL + endpoint, headers=headers)
+        return (response.json(), response.status_code)
 
     response = get(BASE_URL + endpoint, {}, headers=headers)
     try:
-        return response.json()
+        return (response.json(), response.status_code)
     except:
-        return {'Error': 'An issue occured while trying to retrieve data from Spotify'}
+        return {'error': 'An issue occured while trying to retrieve data from Spotify'}, 500
+
+
+def play_song(session_key):
+    return execute_spotify_api_request(session_key, 'player/play', put_=True)
+
+
+def pause_song(session_key):
+    return execute_spotify_api_request(session_key, 'player/pause', put_=True)

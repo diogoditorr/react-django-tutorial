@@ -1,0 +1,3 @@
+Implement:
+    ☐ Display information if the pause/play button successed
+    ☐ If getCurrentSong return {} three times. Stop the interval and redirect to try again in 1 minute.

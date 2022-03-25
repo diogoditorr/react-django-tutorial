@@ -18,6 +18,22 @@ export default function MusicPlayer(props: MusicPlayerProps) {
         return (props.song.time / props.song.duration) * 100;
     }
 
+    async function pauseSong() {
+        const requestOptions = {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+        };
+        await fetch("/spotify/pause", requestOptions);
+    }
+
+    async function playSong() {
+        const requestOptions = {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+        };
+        await fetch("/spotify/play", requestOptions);
+    }
+
     return (
         <Card>
             <Grid container alignItems="center">
@@ -40,12 +56,18 @@ export default function MusicPlayer(props: MusicPlayerProps) {
                     >
                         {props.song.artist}
                     </Typography>
-                    <div style={{
+                    <div
+                        style={{
                             display: "flex",
                             alignItems: "center",
-                            justifyContent: "center"
-                        }}>
-                        <IconButton>
+                            justifyContent: "center",
+                        }}
+                    >
+                        <IconButton
+                            onClick={() =>
+                                props.song.is_playing ? pauseSong() : playSong()
+                            }
+                        >
                             {props.song.is_playing ? <Pause /> : <PlayArrow />}
                         </IconButton>
                         <IconButton>

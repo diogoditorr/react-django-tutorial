@@ -94,6 +94,8 @@ export default function Room() {
         if (isHost) {
             authenticateSpotify();
 
+            // TODO: If getCurrentSong return {} three times. Stop
+            // the interval and redirect to try again in 1 minute.
             const interval = setInterval(async () => {
                 setSong(await getCurrentSong());
             }, 3000);
