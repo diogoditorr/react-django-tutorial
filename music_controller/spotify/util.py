@@ -100,7 +100,7 @@ def execute_spotify_api_request(session_key, endpoint, post_=False, put_=False):
     try:
         return (response.json(), response.status_code)
     except:
-        return {'error': 'An issue occured while trying to retrieve data from Spotify'}, 500
+        return ({'error': 'An issue occured while trying to retrieve data from Spotify'}, 500)
 
 
 def play_song(session_key):
@@ -109,3 +109,7 @@ def play_song(session_key):
 
 def pause_song(session_key):
     return execute_spotify_api_request(session_key, 'player/pause', put_=True)
+
+
+def skip_song(session_key):
+    return execute_spotify_api_request(session_key, 'player/next', post_=True)

@@ -26,6 +26,8 @@ export type Song = {
     image_url: string;
     is_playing: boolean;
     votes: number;
+    votes_required: number;
+    current_playing_type?: string;
 };
 
 export default function Room() {
@@ -39,6 +41,7 @@ export default function Room() {
     const [isHost, setIsHost] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [song, setSong] = useState<Song | Record<string, never>>({});
+    const [getCurrentSongError, setGetCurrentSongError] = useState(false);
 
     function leaveRoom() {
         fetch("/api/leave-room", {
@@ -89,20 +92,34 @@ export default function Room() {
     useEffect(() => {
         fetchData();
     }, []);
-
+    
     useEffect(() => {
         if (isHost) {
             authenticateSpotify();
-
-            // TODO: If getCurrentSong return {} three times. Stop
-            // the interval and redirect to try again in 1 minute.
-            const interval = setInterval(async () => {
-                setSong(await getCurrentSong());
-            }, 3000);
-
-            return () => clearInterval(interval);
         }
     }, [isHost]);
+
+    useEffect(() => {
+        if (getCurrentSongError) {
+            return;
+        }
+        
+        let count = 0;
+        const interval = setInterval(async () => {
+            const currentSong = await getCurrentSong();
+            setSong(currentSong);
+            if (Object.keys(currentSong).length < 1 && count < 3) {
+                count++;
+            }
+
+            if (count >= 3) {
+                clearInterval(interval);
+                setGetCurrentSongError(true);
+            }
+        }, 3000);
+
+        return () => clearInterval(interval);
+    }, [getCurrentSongError]);
 
     return (
         <Grid container spacing={1} direction="column" alignItems="center">
@@ -112,6 +129,21 @@ export default function Room() {
                 </Typography>
             </Grid>
             {Object.keys(song).length > 0 && <MusicPlayer song={song} />}
+            {getCurrentSongError && (
+                <>
+                    <Typography variant="h5" component="h5">
+                        Could not get current song. Please try again in a
+                        minute.
+                    </Typography>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => setGetCurrentSongError(false)}
+                    >
+                        Try again
+                    </Button>
+                </>
+            )}
             {isHost ? (
                 <Grid item xs={12}>
                     <Button

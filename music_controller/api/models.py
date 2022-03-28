@@ -19,6 +19,5 @@ class Room(models.Model):
     host = models.CharField(max_length=50, unique=True)
     guest_can_pause = models.BooleanField(null=False, default=False)
     votes_to_skip = models.IntegerField(null=False, default=1)
+    current_song = models.CharField(max_length=50, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
-
-    # def is_host_this()
