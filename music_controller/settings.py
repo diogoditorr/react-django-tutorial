@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     'debug_toolbar',
     'api.apps.ApiConfig',
     'rest_framework',
-    'frontend.apps.FrontendConfig',
     'spotify.apps.SpotifyConfig'
 ]
 
