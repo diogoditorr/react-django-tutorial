@@ -6,6 +6,7 @@ import HomePage from "./HomePage";
 import Room from "./Room";
 import RoomJoinPage from "./RoomJoinPage";
 import RoomSettings from "./RoomSettings";
+import Info from './Info';
 
 export default function App() {
     return (
@@ -15,6 +16,7 @@ export default function App() {
                     <Switch>
                         <Route path="/" exact component={HomePage} />
                         <Route path="/join" component={RoomJoinPage} />
+                        <Route path="/info" component={Info} />
                         <Route path="/create" component={CreateRoomPage} />
                         <Route path="/room/:roomCode" exact component={Room} />
                         <Route path="/room/:roomCode/settings" component={RoomSettings} />
