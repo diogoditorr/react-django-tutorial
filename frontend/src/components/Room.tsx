@@ -38,9 +38,13 @@ export default function Room() {
     const [cookies, setCookie, removeCookie] = useCookies(["csrftoken"]);
 
     const [isHost, setIsHost] = useState<boolean | null>(null);
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(
+        null
+    );
     const [song, setSong] = useState<Song | Record<string, never>>({});
     const [getCurrentSongError, setGetCurrentSongError] = useState(false);
+    const [hostAuthenticationError, setHostAuthenticationError] =
+        useState(false);
 
     async function fetchData() {
         if (roomCode === undefined) return;
@@ -61,7 +65,18 @@ export default function Room() {
         return isAuthenticatedData.status ? true : false;
     }
 
-    async function isHostAuthenticatedInRoom() {
+    async function checkHostInRoomAuthentication() {
+        const hostAuthenticated = await isHostAuthenticatedInRoom(roomCode);
+        if (!hostAuthenticated) {
+            setIsAuthenticated(false);
+            setHostAuthenticationError(true);
+        } else {
+            setIsAuthenticated(true);
+            setHostAuthenticationError(false);
+        }
+    }
+
+    async function isHostAuthenticatedInRoom(roomCode: string | undefined) {
         const response = await api.get(
             `/api/spotify/is-host-authenticated-in-room?room_code=${roomCode}`
         );
@@ -103,16 +118,15 @@ export default function Room() {
     useEffect(() => {
         async function handleUserJoin() {
             const userRoomCode = await getUserRoom();
-    
+
             if (userRoomCode !== roomCode && userRoomCode !== null) {
                 navigate("/room/" + userRoomCode);
-                return
-    
+                return;
             } else if (userRoomCode === null) {
                 navigate("/");
-                return
+                return;
             }
-            
+
             fetchData();
         }
 
@@ -127,14 +141,15 @@ export default function Room() {
                 const hostAuthenticated = await isHostAuthenticated();
                 setIsAuthenticated(hostAuthenticated);
             } else {
-                const hostAuthenticated = await isHostAuthenticatedInRoom();
-                setIsAuthenticated(hostAuthenticated);
+                await checkHostInRoomAuthentication();
             }
         })();
     }, [isHost]);
 
     useEffect(() => {
         if (!isAuthenticated) return;
+
+        if (hostAuthenticationError) return;
 
         if (getCurrentSongError) return;
 
@@ -153,7 +168,7 @@ export default function Room() {
         }, 3000);
 
         return () => clearInterval(interval);
-    }, [isAuthenticated, getCurrentSongError]);
+    }, [isAuthenticated, getCurrentSongError, hostAuthenticationError]);
 
     return (
         <Grid container spacing={1} direction="column" alignItems="center">
@@ -173,6 +188,20 @@ export default function Room() {
                         variant="contained"
                         color="primary"
                         onClick={() => setGetCurrentSongError(false)}
+                    >
+                        Try again
+                    </Button>
+                </>
+            )}
+            {hostAuthenticationError && (
+                <>
+                    <Typography variant="h5" component="h5">
+                        Host is not authenticated. Please try again in a minute.
+                    </Typography>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={checkHostInRoomAuthentication}
                     >
                         Try again
                     </Button>
