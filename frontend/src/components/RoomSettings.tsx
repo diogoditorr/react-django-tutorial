@@ -13,15 +13,16 @@ import {
 import { Alert } from "@material-ui/lab";
 import React, { useContext, useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
-import { useHistory, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { RoomContext } from "../contexts/RoomContext";
+import api from "../services/api";
 
 type RoomSettingsParams = {
     roomCode: string;
-}
+};
 
 export default function RoomSettings() {
-    const history = useHistory();
+    const navigate = useNavigate();
     const { getRoom, defaultRoomProps } = useContext(RoomContext);
     const { roomCode } = useParams<RoomSettingsParams>();
     const [cookies, setCookie, removeCookie] = useCookies(["csrftoken"]);
@@ -44,49 +45,55 @@ export default function RoomSettings() {
         setGuestCanPause(e.target.value === "true" ? true : false);
     }
 
-    function handleUpdateButton() {
-        const requestOptions = {
-            method: "PATCH",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": cookies.csrftoken,
-            },
-            body: JSON.stringify({
+    async function handleUpdateButton() {
+        const response = await api.patch(
+            "/api/update-room",
+            {
                 votes_to_skip: votesToSkip,
                 guest_can_pause: guestCanPause,
                 code: roomCode,
-            }),
-        };
-
-        fetch("/api/update-room", requestOptions).then((response) => {
-            if (response.ok) {
-                setError(false);
-                setLogMessage("Room updated successfully!");
-            } else {
-                setError(true);
-                setLogMessage("Error updating room...");
+            },
+            {
+                headers: {
+                    "X-CSRFToken": cookies.csrftoken,
+                },
             }
-        });
+        );
+
+        if (response.status === 200) {
+            setError(false);
+            setLogMessage("Room updated successfully!");
+        } else {
+            setError(true);
+            setLogMessage("Error updating room...");
+        }
+    }
+
+    async function fetchData() {
+        if (roomCode === undefined) return;
+
+        const result = await getRoom(roomCode);
+        if (result.response.status !== 200) {
+            navigate("/");
+        }
+
+        setGuestCanPause(result.data.guest_can_pause);
+        setVotesToSkip(result.data.votes_to_skip);
     }
 
     useEffect(() => {
-        async function fetchData() {
-            const result = await getRoom(roomCode);
-            if (result.response.status !== 200) {
-                history.push("/");
-            }
-
-            setGuestCanPause(result.data.guest_can_pause);
-            setVotesToSkip(result.data.votes_to_skip);
-        }
-
         fetchData();
     }, []);
 
     return (
         <Grid container spacing={1} direction="column" alignItems="center">
             <Grid item xs={12}>
-                <Grid container spacing={1} direction="column" alignItems="center">
+                <Grid
+                    container
+                    spacing={1}
+                    direction="column"
+                    alignItems="center"
+                >
                     <Grid item xs={12}>
                         <Collapse in={logMessage != ""}>
                             {error === true ? (
@@ -114,9 +121,7 @@ export default function RoomSettings() {
                     <Grid item xs={12}>
                         <FormControl component="fieldset">
                             <FormHelperText>
-                                <span>
-                                    Guest Control of Playback State
-                                </span>
+                                <span>Guest Control of Playback State</span>
                             </FormHelperText>
                             <RadioGroup
                                 row
@@ -151,9 +156,7 @@ export default function RoomSettings() {
                                 onChange={handleVotesChange}
                             />
                             <FormHelperText>
-                                <span>
-                                    Votes Required To Skip Song
-                                </span>
+                                <span>Votes Required To Skip Song</span>
                             </FormHelperText>
                         </FormControl>
                     </Grid>
@@ -172,7 +175,7 @@ export default function RoomSettings() {
                 <Button
                     variant="contained"
                     color="secondary"
-                    onClick={() => history.push(`/room/${roomCode}`)}
+                    onClick={() => navigate(`/room/${roomCode}`)}
                 >
                     Go back
                 </Button>

@@ -1,38 +1,33 @@
 import { Button, ButtonGroup, Grid, Typography } from "@material-ui/core";
 import React, { useContext, useEffect } from "react";
-import { Link, useHistory } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { RoomContext } from "../contexts/RoomContext";
 
-type UserInRoomData = {
-    code: string | null;
-}
-
 export default function HomePage() {
-    const { roomCode, setRoomCode } = useContext(RoomContext);
-    const history = useHistory();
+    const { roomCode, getUserRoom, setRoomCode } = useContext(RoomContext);
+    const navigate = useNavigate();
+
+    async function fetchUserRoom() {
+        const userRoomCode = await getUserRoom();
+
+        if (userRoomCode) {
+            setRoomCode(userRoomCode);
+            navigate("/room/" + userRoomCode);
+        }
+    }
 
     useEffect(() => {
-        if (!roomCode)
-            fetch("/api/user-in-room")
-                .then((response) => response.json())
-                .then((data: UserInRoomData) => {
-                    if (data.code !== null) {
-                        setRoomCode(data.code);
-                        history.push("/room/" + data.code);
-                    }
-                });
-        else
-            history.push("/room/" + roomCode);
+        if (!roomCode) {
+            fetchUserRoom();
+        } else navigate("/room/" + roomCode);
     }, []);
 
     return (
         <Grid container spacing={3} direction="column" alignItems="center">
-            <Grid item xs={12} alignItems="center">
-                <Typography variant="h3">
-                    House Party
-                </Typography>
+            <Grid container item xs={12} alignItems="center">
+                <Typography variant="h3">House Party</Typography>
             </Grid>
-            <Grid item xs={12} alignItems="center">
+            <Grid container item xs={12} alignItems="center">
                 <ButtonGroup
                     disableElevation
                     variant="contained"

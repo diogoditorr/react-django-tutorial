@@ -1,12 +1,10 @@
-import React from "react";
 import {
-    Grid,
-    Typography,
-    Card,
-    IconButton,
-    LinearProgress,
+    Card, Grid, IconButton,
+    LinearProgress, Typography
 } from "@material-ui/core";
-import { PlayArrow, SkipNext, Pause } from "@material-ui/icons";
+import { Pause, PlayArrow, SkipNext } from "@material-ui/icons";
+import React from "react";
+import api from "../services/api";
 import { Song } from "./Room";
 
 type MusicPlayerProps = {
@@ -19,27 +17,15 @@ export default function MusicPlayer(props: MusicPlayerProps) {
     }
 
     async function pauseSong() {
-        const requestOptions = {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-        };
-        await fetch("/spotify/pause", requestOptions);
+        await api.put("/api/spotify/pause", {});
     }
 
     async function playSong() {
-        const requestOptions = {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-        };
-        await fetch("/spotify/play", requestOptions);
+        await api.put("/api/spotify/play", {});
     }
 
     async function skipSong() {
-        const requestOptions = {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-        }
-        await fetch("/spotify/skip", requestOptions);
+        await api.post("/api/spotify/skip", {});
     }
 
     return (
@@ -79,10 +65,11 @@ export default function MusicPlayer(props: MusicPlayerProps) {
                             {props.song.is_playing ? <Pause /> : <PlayArrow />}
                         </IconButton>
                         <IconButton onClick={() => skipSong()}>
-                            <SkipNext /> 
+                            <SkipNext />
                         </IconButton>
                         <p>
-                            {props.song.votes + " "} / {props.song.votes_required}
+                            {props.song.votes + " "} /{" "}
+                            {props.song.votes_required}
                         </p>
                     </div>
                 </Grid>

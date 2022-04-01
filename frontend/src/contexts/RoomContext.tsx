@@ -1,11 +1,11 @@
-import PropTypes from "prop-types";
+import { AxiosResponse } from "axios";
 import React, { Dispatch, SetStateAction, useState } from "react";
-
+import api from "../services/api";
 
 type DefaultRoomProps = {
     votesToSkip: number;
     guestCanPause: boolean;
-}
+};
 
 type RoomData = {
     code: string;
@@ -14,21 +14,26 @@ type RoomData = {
     votes_to_skip: number;
     guest_can_pause: boolean;
     created_at: string;
+};
+
+type UserInRoomData = {
+    code: string | null;
 }
 
 type RoomContextType = {
     defaultRoomProps: DefaultRoomProps;
     roomCode: string;
-    setRoomCode: Dispatch<SetStateAction<string>>;
     getRoom: (roomCode: string) => Promise<{
         data: RoomData;
-        response: Response;
+        response: AxiosResponse;
     }>;
-}
+    getUserRoom: () => Promise<string | null>;
+    setRoomCode: Dispatch<SetStateAction<string>>;
+};
 
 type RoomContextProviderProps = {
     children: React.ReactNode;
-}
+};
 
 export const RoomContext = React.createContext({} as RoomContextType);
 
@@ -37,21 +42,29 @@ export function RoomContextProvider(props: RoomContextProviderProps) {
     const [defaultRoomProps, setDefaultRoomProps] = useState({
         votesToSkip: 2,
         guestCanPause: true,
-    })
+    });
 
     async function getRoom(roomCode: string) {
-        const response = await fetch("/api/get-room" + "?code=" + roomCode);
-        const data: RoomData = await response.json();
+        const response = await api.get("/api/get-room" + "?code=" + roomCode);
+        const data: RoomData = response.data;
 
         return { data, response };
     }
 
+    async function getUserRoom() {
+        const response = await api.get("/api/user-in-room");
+        const data: UserInRoomData = response.data;
+
+        return data.code
+    }
+
     return (
         <RoomContext.Provider
-        value={{
+            value={{
                 defaultRoomProps,
                 roomCode,
                 getRoom,
+                getUserRoom,
                 setRoomCode,
             }}
         >

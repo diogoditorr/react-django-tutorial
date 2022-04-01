@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { TextField, Button, Grid, Typography } from "@material-ui/core";
-import { Link, useHistory } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useCookies } from "react-cookie";
+import api from "../services/api";
 
 export default function RoomJoinPage() {
-    const history = useHistory();
-    const [roomCode, setRoomCode] = useState('');
-    const [cookies, setCookie, removeCookie] = useCookies(['csrftoken']);
+    const navigate = useNavigate();
+    const [roomCode, setRoomCode] = useState("");
+    const [cookies, setCookie, removeCookie] = useCookies(["csrftoken"]);
 
     const [error, setError] = useState("");
 
@@ -14,27 +15,28 @@ export default function RoomJoinPage() {
         setRoomCode(e.target.value);
     }
 
-    function roomButtonPressed() {
-        fetch("/api/join-room", {
-            method: "POST",
-            headers: { 
-                "Content-Type": "application/json",
-                "X-CSRFToken": cookies.csrftoken
-            },
-            body: JSON.stringify({
-                code: roomCode,
-            }),
-        })
-            .then((response) => {
-                if (response.ok) {
-                    history.push(`/room/${roomCode}`);
-                } else {
-                    setError("Room not found.");
+    async function roomButtonPressed() {
+        try {
+            const response = await api.post(
+                "/api/join-room",
+                {
+                    code: roomCode,
+                },
+                {
+                    headers: {
+                        "X-CSRFToken": cookies.csrftoken,
+                    },
                 }
-            })
-            .catch((error) => {
-                console.log(error);
-            });
+            );
+
+            if (response.status === 200) {
+                navigate(`/room/${roomCode}`);
+            } else {
+                setError("Room not found.");
+            }
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     return (

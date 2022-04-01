@@ -3,7 +3,7 @@ from pathlib import Path
 
 from dotenv import dotenv_values
 
-env_path = Path(os.path.dirname(__file__)).resolve().parent.parent / '.env'
+env_path = Path(os.path.dirname(__file__)).resolve().parent / '.env'
 if not env_path.exists():
     print("Could not find '.env' on root directory. Please create one.")
     exit()

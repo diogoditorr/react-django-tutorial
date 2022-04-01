@@ -19,12 +19,15 @@ def get_user_tokens(session_key) -> SpotifyToken | None:
 
 
 def update_or_create_user_tokens(
-    session_key,
-    access_token,
-    token_type,
+    session_key: str,
+    access_token: str,
+    token_type: str,
     expires_in: int,
     refresh_token: None | str = None,
 ):
+    if not session_key:
+        raise ValueError("session_key cannot be None")
+
     tokens = get_user_tokens(session_key)
     expires_in: datetime = timezone.now() + timedelta(seconds=expires_in)
 

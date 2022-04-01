@@ -1,8 +1,9 @@
 import { Button, Grid, Typography } from "@material-ui/core";
 import React, { useContext, useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
-import { useHistory, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { RoomContext } from "../contexts/RoomContext";
+import api from "../services/api";
 import MusicPlayer from "./MusicPlayer";
 
 type RoomParams = {
@@ -31,79 +32,112 @@ export type Song = {
 };
 
 export default function Room() {
-    const history = useHistory();
+    const navigate = useNavigate();
     const { roomCode } = useParams<RoomParams>();
-    const { setRoomCode, getRoom } = useContext(RoomContext);
+    const { setRoomCode, getRoom, getUserRoom } = useContext(RoomContext);
     const [cookies, setCookie, removeCookie] = useCookies(["csrftoken"]);
 
-    const [votesToSkip, setVotesToSkip] = useState(2);
-    const [guestCanPause, setGuestCanPause] = useState(false);
-    const [isHost, setIsHost] = useState(false);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isHost, setIsHost] = useState<boolean | null>(null);
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
     const [song, setSong] = useState<Song | Record<string, never>>({});
     const [getCurrentSongError, setGetCurrentSongError] = useState(false);
 
-    function leaveRoom() {
-        fetch("/api/leave-room", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": cookies.csrftoken,
-            },
-        }).then((response) => {
+    async function fetchData() {
+        if (roomCode === undefined) return;
+
+        const result = await getRoom(roomCode);
+        if (result.response.status !== 200) {
             clearRoomCode();
-            history.push("/");
-        });
+            navigate("/");
+        }
+        setIsHost(result.data.is_host);
+        setRoomCode(roomCode);
+    }
+
+    async function isHostAuthenticated() {
+        const response = await api.get("/api/spotify/is-authenticated");
+        const isAuthenticatedData: IsAuthenticatedData = await response.data;
+
+        return isAuthenticatedData.status ? true : false;
+    }
+
+    async function isHostAuthenticatedInRoom() {
+        const response = await api.get(
+            `/api/spotify/is-host-authenticated-in-room?room_code=${roomCode}`
+        );
+        const isAuthenticatedData: IsAuthenticatedData = await response.data;
+
+        return isAuthenticatedData.status ? true : false;
+    }
+
+    async function authenticateSpotify() {
+        const response = await api.get("/api/spotify/get-auth-url");
+        const getAuthData: GetAuthData = await response.data;
+        window.location.replace(getAuthData.url);
+    }
+
+    async function getCurrentSong(): Promise<Song | Record<string, never>> {
+        const response = await api.get("/api/spotify/current-song");
+        return response.status === 200 ? response.data : {};
+    }
+
+    async function leaveRoom() {
+        await api.post(
+            "/api/leave-room",
+            {},
+            {
+                headers: {
+                    "X-CSRFToken": cookies.csrftoken,
+                },
+            }
+        );
+
+        clearRoomCode();
+        navigate("/");
     }
 
     function clearRoomCode() {
         setRoomCode("");
     }
 
-    async function authenticateSpotify() {
-        let response = await fetch("/spotify/is-authenticated");
-        const isAuthenticatedData: IsAuthenticatedData = await response.json();
-
-        if (isAuthenticatedData.status === false) {
-            response = await fetch("/spotify/get-auth-url");
-            const getAuthData: GetAuthData = await response.json();
-            window.location.replace(getAuthData.url);
-        }
-        setIsAuthenticated(isAuthenticatedData.status);
-    }
-
-    async function getCurrentSong(): Promise<Song | Record<string, never>> {
-        const response = await fetch("/spotify/current-song");
-        return response.ok ? await response.json() : {};
-    }
-
-    async function fetchData() {
-        const result = await getRoom(roomCode);
-        if (result.response.status !== 200) {
-            clearRoomCode();
-            history.push("/");
-        }
-        setVotesToSkip(result.data.votes_to_skip);
-        setGuestCanPause(result.data.guest_can_pause);
-        setIsHost(result.data.is_host);
-        setRoomCode(roomCode);
-    }
-
     useEffect(() => {
-        fetchData();
-    }, []);
+        async function handleUserJoin() {
+            const userRoomCode = await getUserRoom();
     
-    useEffect(() => {
-        if (isHost) {
-            authenticateSpotify();
+            if (userRoomCode !== roomCode && userRoomCode !== null) {
+                navigate("/room/" + userRoomCode);
+                return
+    
+            } else if (userRoomCode === null) {
+                navigate("/");
+                return
+            }
+            
+            fetchData();
         }
+
+        handleUserJoin();
+    }, []);
+
+    useEffect(() => {
+        if (isHost === null) return;
+
+        (async () => {
+            if (isHost) {
+                const hostAuthenticated = await isHostAuthenticated();
+                setIsAuthenticated(hostAuthenticated);
+            } else {
+                const hostAuthenticated = await isHostAuthenticatedInRoom();
+                setIsAuthenticated(hostAuthenticated);
+            }
+        })();
     }, [isHost]);
 
     useEffect(() => {
-        if (getCurrentSongError) {
-            return;
-        }
-        
+        if (!isAuthenticated) return;
+
+        if (getCurrentSongError) return;
+
         let count = 0;
         const interval = setInterval(async () => {
             const currentSong = await getCurrentSong();
@@ -119,7 +153,7 @@ export default function Room() {
         }, 3000);
 
         return () => clearInterval(interval);
-    }, [getCurrentSongError]);
+    }, [isAuthenticated, getCurrentSongError]);
 
     return (
         <Grid container spacing={1} direction="column" alignItems="center">
@@ -145,17 +179,30 @@ export default function Room() {
                 </>
             )}
             {isHost ? (
-                <Grid item xs={12}>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() =>
-                            history.push(`/room/${roomCode}/settings`)
-                        }
-                    >
-                        Settings
-                    </Button>
-                </Grid>
+                <>
+                    <Grid item xs={12}>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() =>
+                                navigate(`/room/${roomCode}/settings`)
+                            }
+                        >
+                            Settings
+                        </Button>
+                    </Grid>
+                    {isAuthenticated === false && (
+                        <Grid item xs={12}>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={authenticateSpotify}
+                            >
+                                Authenticate Spotify
+                            </Button>
+                        </Grid>
+                    )}
+                </>
             ) : (
                 ""
             )}

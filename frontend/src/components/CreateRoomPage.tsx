@@ -7,15 +7,20 @@ import {
     Radio,
     RadioGroup,
     TextField,
-    Typography
+    Typography,
 } from "@material-ui/core";
 import React, { useContext, useState } from "react";
 import { useCookies } from "react-cookie";
-import { Link, useHistory } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { RoomContext } from "../contexts/RoomContext";
+import api from "../services/api";
+
+type CreateRoomData = {
+    code: string;
+}
 
 export default function CreateRoomPage() {
-    const history = useHistory();
+    const navigate = useNavigate();
     const { setRoomCode, defaultRoomProps } = useContext(RoomContext);
     const [cookies, setCookie, removeCookie] = useCookies(["csrftoken"]);
 
@@ -34,28 +39,30 @@ export default function CreateRoomPage() {
         setGuestCanPause(e.target.value === "true" ? true : false);
     }
 
-    function handleCreateRoomButton() {
-        const requestOptions = {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": cookies.csrftoken,
-            },
-            body: JSON.stringify({
-                votes_to_skip: votesToSkip,
-                guest_can_pause: guestCanPause,
-            }),
-        };
-
-        fetch("/api/create-room", requestOptions)
-            .then((response) => response.json())
-            .then((data) => {
-                if (data.code === null) history.push("/");
-                else {
-                    setRoomCode(data.code);
-                    history.push("/room/" + data.code);
+    async function handleCreateRoomButton() {
+        try {
+            const response = await api.post(
+                "/api/create-room",
+                {
+                    votes_to_skip: votesToSkip,
+                    guest_can_pause: guestCanPause,
+                },
+                {
+                    headers: {
+                        "X-CSRFToken": cookies.csrftoken,
+                    },
                 }
-            });
+            );
+
+            const data: CreateRoomData = response.data;
+            if (data.code === null) navigate("/");  
+            else {
+                setRoomCode(data.code);
+                navigate("/room/" + data.code);
+            }
+        } catch(error) {
+            console.log(error);
+        }
     }
 
     return (
@@ -68,9 +75,7 @@ export default function CreateRoomPage() {
             <Grid item xs={12}>
                 <FormControl component="fieldset">
                     <FormHelperText>
-                        <span>
-                            Guest Control of Playback State
-                        </span>
+                        <span>Guest Control of Playback State</span>
                     </FormHelperText>
                     <RadioGroup
                         row
@@ -124,8 +129,9 @@ export default function CreateRoomPage() {
                     <Button
                         color="secondary"
                         variant="contained"
-                        to="/"
-                        component={Link}
+                        onClick={() => navigate("/")}
+                        // to="/"
+                        // component={Link}
                     >
                         Back
                     </Button>
